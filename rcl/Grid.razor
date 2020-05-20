@@ -1,0 +1,60 @@
+﻿@using Microsoft.JSInterop
+@inject Microsoft.JSInterop.IJSRuntime JS
+
+<h2>Open the developer console (F12) to see progress and results</h2>
+<button id="refresh" @onclick="Refresh">Refresh</button>
+<input type="number" id="num-items" @bind="Num" />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Temp. (C)</th>
+            <th>Temp. (F)</th>
+            <th>Summary</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var forecast in forecasts)
+        {
+            <tr>
+                <td>@forecast.Date.ToShortDateString()</td>
+                <td>@forecast.TemperatureC</td>
+                <td>@forecast.TemperatureF</td>
+                <td>@forecast.Summary</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<span id="ready"></span>
+
+@code
+{
+    int num;
+
+    WeatherForecastService service = new WeatherForecastService();
+    IEnumerable<WeatherForecast> forecasts = Enumerable.Empty<WeatherForecast>();
+
+    public int Num
+    {
+        get => num;
+        set
+        {
+            num = value;
+            Refresh();
+        }
+    }
+
+    void Refresh()
+    {
+        forecasts = service.GetForecasts(num);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JS.InvokeVoidAsync(
+            "receiveBenchmarkEvent",
+            "Done");
+    }
+}
